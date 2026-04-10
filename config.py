@@ -9,7 +9,6 @@ load_dotenv()
 endpoint = os.getenv("ENDPOINT")
 key = os.getenv("KEY")
 
-
 def get_client() -> DocumentIntelligenceClient:
     """
     Create and return an Azure Document Intelligence client.

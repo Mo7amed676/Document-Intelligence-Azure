@@ -40,6 +40,12 @@ def render_layout_results(result: dict):
     with structured_col:
         st.subheader("Structured view")
 
+        # key-value pairs
+        if result.get("key_value_pairs"):
+            with st.expander(f"Key-Value Pairs ({len(result['key_value_pairs'])})", expanded=True):
+                df_kv = pd.DataFrame(result["key_value_pairs"])
+                st.dataframe(df_kv, width='stretch', hide_index=True)
+
         # paragraphs grouped by role
         paragraphs = result.get("paragraphs", [])
 
@@ -53,7 +59,8 @@ def render_layout_results(result: dict):
                 current_group = []
                 
                 for p in paragraphs:
-                    if p["role"] in heading_roles and current_group:
+                    role = p.get("role")
+                    if role in heading_roles and current_group:
                         groups.append(current_group)
                         current_group = [p]
                     else:
@@ -66,12 +73,14 @@ def render_layout_results(result: dict):
                     heading = group[0]
                     body_items = group[1:]
                     
-                    rows = [{"Role": heading["role"], 
+                    heading_role = heading.get("role", "Body")
+                    rows = [{"Role": heading_role, 
                             "Content": heading["content"][:120] + ("…" if len(heading["content"]) > 120 else "")}]
                     
                     for p in body_items:
+                        role = p.get("role", "Body")
                         rows.append({
-                            "Role": p["role"],
+                            "Role": role,
                             "Content": p["content"][:120] + ("…" if len(p["content"]) > 120 else "")
                         })
                     

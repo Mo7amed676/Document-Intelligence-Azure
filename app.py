@@ -2,7 +2,7 @@ import streamlit as st
 
 from layout_model import analyze_layout
 from output_format import render_layout_results
-
+from general_document_model import analyze_general
 
 
 def file_uploader(label="Upload a document (PDF, JPEG, PNG, TIFF, BMP)"):
@@ -48,10 +48,18 @@ def handle_general():
     """
     Handler for General Documents model
     """
-    st.info("General Documents model — not yet implemented.")
     uploaded_file = file_uploader()
     if uploaded_file:
-        st.warning("General Documents model not yet implemented.")
+        with st.spinner("Analyzing General documents…"):
+            try:
+                files_bytes = uploaded_file.read()
+                result = analyze_general(files_bytes)
+                print("results are done")
+                render_layout_results(result)
+            except Exception as e:
+                st.error("Analysis Failed.")
+                st.exception(e)
+  
             
 
 def handle_ocr():
