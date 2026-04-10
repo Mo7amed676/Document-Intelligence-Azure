@@ -1,0 +1,122 @@
+import streamlit as st
+
+from layout_model import analyze_layout
+from output_format import render_layout_results
+
+
+
+def file_uploader(label="Upload a document (PDF, JPEG, PNG, TIFF, BMP)"):
+    """Single-file uploader used by most models."""
+
+    return st.file_uploader(label, type=["pdf", "jpg", "jpeg", "png", "tiff", "bmp"])
+
+
+def multi_file_uploader(min_files=5):
+    """Multi-file uploader for Custom Model — enforces minimum."""
+
+    files = st.file_uploader(
+        f"Upload at least {min_files} documents",
+        accept_multiple_files=True,
+        type=["pdf", "jpg", "jpeg", "png", "tiff", "bmp"],
+    )
+
+    if files and len(files) < min_files:
+        st.warning(f"Please upload at least {min_files} documents. You have {len(files)} so far.")
+        return None
+    return files
+
+
+
+#  MODEL HANDLERS
+def handle_layout():
+    """
+    Handler for Layout Analysis model
+    """
+    uploaded_file = file_uploader()
+    if uploaded_file:
+
+        with st.spinner("Analyzing layout…"):
+            try:
+                result = analyze_layout(uploaded_file.read())
+                render_layout_results(result)
+            except Exception as e:
+                st.error("Analysis failed. Check your file format or Azure credentials.")
+                st.exception(e)
+
+
+def handle_general():
+    """
+    Handler for General Documents model
+    """
+    st.info("General Documents model — not yet implemented.")
+    uploaded_file = file_uploader()
+    if uploaded_file:
+        st.warning("General Documents model not yet implemented.")
+            
+
+def handle_ocr():
+    """"
+    Handler for OCR / Read model
+    """
+    st.info("OCR / Read model — not yet implemented.")
+    uploaded_file = file_uploader()
+    if uploaded_file:
+        st.warning("OCR model not yet implemented.")
+
+        
+
+
+def handle_invoices():
+    """
+    Handler for Invoices model
+    """
+    st.info("Invoices model — not yet implemented.")
+    uploaded_file = file_uploader()
+    if uploaded_file:
+        st.warning("Invoices model not yet implemented.")
+
+
+
+def handle_receipts():
+    """
+    Handler for Receipts model"""
+    st.info("Receipts model — not yet implemented.")
+    uploaded_file = file_uploader()
+    if uploaded_file:
+        st.warning("Receipts model not yet implemented.")
+
+
+def handle_custom():
+    """
+    Handler for Custom Model — expects multiple files for training.
+    """
+    st.info("Custom Model requires at least 5 training documents.")
+    files = multi_file_uploader(min_files=5)
+    if files:
+        st.success(f"{len(files)} documents ready.")
+        st.warning("Custom model not yet implemented.")
+
+
+
+OPTIONS = {
+    "OCR / Read":        handle_ocr,
+    "Layout Analysis":   handle_layout,
+    "General Documents": handle_general,
+    "Invoices":          handle_invoices,
+    "Receipts":          handle_receipts,
+    "Custom Model":      handle_custom,
+}
+
+
+
+def main():
+    st.set_page_config(page_title="Azure Document Intelligence", layout="wide")
+    st.title("Azure Document Intelligence")
+
+    # Call the appropriate handler based on user selection
+    option = st.selectbox("Select a processing model", list(OPTIONS.keys()))
+    OPTIONS[option]() 
+
+
+if __name__ == "__main__":
+    main()
