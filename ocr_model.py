@@ -46,15 +46,14 @@ def analyze_ocr(file_bytes: bytes) -> dict:
 
     logger.info("OCR Analysis complete")
 
-    # Mirroring the output structure of layout_model.py to work with output_format.py
     output = {
         "content": result.content or "",
         "styles": [],
         "pages": [],
-        "paragraphs": [],  # prebuilt-read doesn't typically extract paragraphs
-        "tables": [],      # prebuilt-read doesn't extract tables
-        "figures": [],     # prebuilt-read doesn't extract figures
-        "key_value_pairs": [] # prebuilt-read doesn't extract KVs
+        "paragraphs": [],
+        "tables": [], 
+        "figures": [],    
+        "key_value_pairs": []
     }
 
     if result.styles:
