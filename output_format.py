@@ -213,3 +213,152 @@ def render_receipt_results(result: dict):
                     st.dataframe(df_items, hide_index=True, width='stretch')
                 else:
                     st.caption("No line items extracted.")
+
+def render_invoice_results(result: dict):
+
+    st.markdown("---")
+
+    invoices = result.get("invoices", [])
+
+    # =========================
+    # Summary Metrics
+    # =========================
+    total_sum = sum(
+        inv.get("total") for inv in invoices if inv.get("total") is not None
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Pages", result.get("page_count", "—"))
+    col2.metric("Invoices found", len(invoices))
+    col3.metric(
+        "Combined total",
+        f"{total_sum:.2f}" if total_sum else "—"
+    )
+
+    st.markdown("---")
+
+    json_col, structured_col = st.columns(2, gap="large")
+
+    # =========================
+    # LEFT: Raw JSON
+    # =========================
+    with json_col:
+        st.subheader("Raw JSON output")
+        with st.expander("Full result JSON", expanded=False):
+            st.json(result)
+
+    # =========================
+    # RIGHT: Structured View
+    # =========================
+    with structured_col:
+        st.subheader("Structured view")
+
+        if not invoices:
+            st.info("No invoices were extracted from this document.")
+            return
+
+        for invoice in invoices:
+
+            label = f"Invoice #{invoice['invoice_index'] + 1}"
+
+            if invoice.get("invoice_id"):
+                label += f" — {invoice['invoice_id']}"
+
+            if invoice.get("total") is not None:
+                label += f" (Total: {invoice['total']:.2f})"
+
+            with st.expander(label, expanded=True):
+
+                # =========================
+                # Header Table
+                # =========================
+                header_rows = [
+                    {
+                        "Field": "Invoice ID",
+                        "Value": invoice.get("invoice_id") or "—",
+                        "Confidence": f"{invoice['invoice_id_confidence']:.2f}"
+                        if invoice.get("invoice_id_confidence") else "—",
+                    },
+                    {
+                        "Field": "Invoice Date",
+                        "Value": invoice.get("invoice_date") or "—",
+                        "Confidence": f"{invoice['invoice_date_confidence']:.2f}"
+                        if invoice.get("invoice_date_confidence") else "—",
+                    },
+                    {
+                        "Field": "Due Date",
+                        "Value": invoice.get("due_date") or "—",
+                        "Confidence": f"{invoice['due_date_confidence']:.2f}"
+                        if invoice.get("due_date_confidence") else "—",
+                    },
+                    {
+                        "Field": "Vendor",
+                        "Value": invoice.get("vendor_name") or "—",
+                        "Confidence": f"{invoice['vendor_name_confidence']:.2f}"
+                        if invoice.get("vendor_name_confidence") else "—",
+                    },
+                    {
+                        "Field": "Customer",
+                        "Value": invoice.get("customer_name") or "—",
+                        "Confidence": f"{invoice['customer_name_confidence']:.2f}"
+                        if invoice.get("customer_name_confidence") else "—",
+                    },
+                    {
+                        "Field": "Subtotal",
+                        "Value": f"{invoice['subtotal']:.2f}"
+                        if invoice.get("subtotal") is not None else "—",
+                        "Confidence": f"{invoice['subtotal_confidence']:.2f}"
+                        if invoice.get("subtotal_confidence") else "—",
+                    },
+                    {
+                        "Field": "Tax",
+                        "Value": f"{invoice['tax']:.2f}"
+                        if invoice.get("tax") is not None else "—",
+                        "Confidence": f"{invoice['tax_confidence']:.2f}"
+                        if invoice.get("tax_confidence") else "—",
+                    },
+                    {
+                        "Field": "Total",
+                        "Value": f"{invoice['total']:.2f}"
+                        if invoice.get("total") is not None else "—",
+                        "Confidence": f"{invoice['total_confidence']:.2f}"
+                        if invoice.get("total_confidence") else "—",
+                    },
+                    {
+                        "Field": "Amount Due",
+                        "Value": f"{invoice['amount_due']:.2f}"
+                        if invoice.get("amount_due") is not None else "—",
+                        "Confidence": f"{invoice['amount_due_confidence']:.2f}"
+                        if invoice.get("amount_due_confidence") else "—",
+                    },
+                ]
+
+                st.dataframe(
+                    pd.DataFrame(header_rows),
+                    hide_index=True,
+                    width="stretch"
+                )
+
+                # =========================
+                # Line Items
+                # =========================
+                if invoice.get("items"):
+
+                    st.markdown("**Line items**")
+
+                    df_items = pd.DataFrame([
+                        {
+                            "Description": item.get("description") or "—",
+                            "Qty": item.get("quantity") if item.get("quantity") is not None else "—",
+                            "Unit Price": f"{item['unit_price']:.2f}" if item.get("unit_price") is not None else "—",
+                            "Amount": f"{item['amount']:.2f}" if item.get("amount") is not None else "—",
+                            "Product Code": item.get("product_code") or "—",
+                        }
+                        for item in invoice["items"]
+                    ])
+
+                    st.dataframe(df_items, hide_index=True, width="stretch")
+
+                else:
+                    st.caption("No line items extracted.")
