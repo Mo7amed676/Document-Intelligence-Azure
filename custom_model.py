@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 from dotenv import load_dotenv
-from streamlit_drawable_canvas import st_canvas
 from PIL import Image
 from pdf2image import convert_from_bytes
 from io import BytesIO
